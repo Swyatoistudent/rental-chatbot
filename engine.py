@@ -28,7 +28,3 @@ query_engine.update_prompts(
     {"response_synthesizer:summary_template": new_summary_tmpl}
 )
 
-chat_engine = CondenseQuestionChatEngine.from_defaults(
-    query_engine=query_engine,
-    verbose=True,
-)

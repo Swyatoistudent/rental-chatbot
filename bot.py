@@ -1,12 +1,11 @@
 import telebot
 from engine import query_engine
-from telebot.handler_backends import State, StatesGroup
 from llama_index.core.chat_engine import CondenseQuestionChatEngine
-from telebot.storage import StateMemoryStorage
-API_TOKEN = 'telegram-bot-api'
+from langsmith import traceable
+
+API_TOKEN = 'telegram_api_key'
 
 bot = telebot.TeleBot(API_TOKEN)
-
 user_engines = {}
 
 # Handle '/start'
@@ -30,14 +29,19 @@ def clear(message):
     bot.reply_to(message, """ Chat history was successfully deleted """)
 
 
+@traceable
+def get_response(chat_id, text):
+    return user_engines[chat_id].chat(text)
+
+
 @bot.message_handler(func=lambda message: True)
-def echo_message(message):
+def answer_message(message):
     if message.chat.id not in user_engines.keys():
         user_engines[message.chat.id] = CondenseQuestionChatEngine.from_defaults(
             query_engine=query_engine,
             verbose=True,
         )
-    response = user_engines[message.chat.id].chat(message.text)
+    response = get_response(message.chat.id, message.text)
     print(response)
     bot.reply_to(message, response)
 
